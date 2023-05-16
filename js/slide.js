@@ -2,6 +2,8 @@ export default class Slide {
   constructor(slide, wrapper) {
     this.slide = document.querySelector(slide);
     this.wrapper = document.querySelector(wrapper);
+
+    // Objeto que vai guardar as informações das distancias do slide quando o mouse deslizar
     this.dist = {
       finalPosition: 0,
       startX: 0,
@@ -10,36 +12,56 @@ export default class Slide {
   }
 
   moveSlide(distX) {
-    this.dist.movePosition = distX
+    this.dist.movePosition = distX;
     this.slide.style.transform = `translate3d(${distX}px,0,0)`;
   }
 
+  // Função que vai ficar atualizando enquanto o mouse se move e vai armazenar o quanto o mouse se moveu do inicio ao fim do click e vai retornar a nova finalPosition que é de onde o slide tem que começar a se mover no próximo click
   updatePosition(clientX) {
-    this.dist.movement = (this.dist.startX - clientX) * 1.5
-    console.log(this.dist.movement);
+    this.dist.movement = (this.dist.startX - clientX) * 1.5;
     return this.dist.finalPosition - this.dist.movement;
   }
 
+  // Função que é iniciada quando um dos slides é clicado
   onStart(event) {
-    event.preventDefault();
-    this.dist.startX = event.clientX;
-    console.log(this.dist.startX);
-    this.wrapper.addEventListener("mousemove", this.onMove);
+    let moveType;
+    if (event.type === "mousedown") {
+      event.preventDefault();
+      // Na hora do click, clientX é armazenado para guardar o ponto de partida do mouse
+      this.dist.startX = event.clientX;
+      moveType = "mousemove";
+    } else {
+      this.dist.startX = event.changedTouches[0].clientX;
+      moveType = "touchmove";
+    }
+
+    // Durante o click, o evento que estiver em movetype é acionado
+    this.wrapper.addEventListener(moveType, this.onMove);
   }
 
+  // Função que é iniciada quando segura o click do mouse em cima do slide
   onMove(event) {
-    const finalPosition = this.updatePosition(event.clientX);
-    this.moveSlide(finalPosition)
+    const pointerPosition =
+      event.type == "mousemove"
+        ? event.clientX
+        : event.changedTouches[0].clientX;
+    // Enquanto houver movimento do mouse, a função updatePosition ficará sendo invocada sem parar
+    const finalPosition = this.updatePosition(pointerPosition);
+    // Chamando a função que irá fazer a movimentação do slide
+    this.moveSlide(finalPosition);
   }
 
   onEnd(event) {
-    this.wrapper.removeEventListener("mousemove", this.onMove);
-    this.dist.finalPosition = this.dist.movePosition
+    const moveType = (event.type === 'mouseup') ? 'mousemove' : 'touchmove'
+    this.wrapper.removeEventListener(moveType, this.onMove);
+    this.dist.finalPosition = this.dist.movePosition;
   }
 
   addSlideEvents() {
     this.wrapper.addEventListener("mousedown", this.onStart);
+    this.wrapper.addEventListener("touchstart", this.onStart);
     this.wrapper.addEventListener("mouseup", this.onEnd);
+    this.wrapper.addEventListener("touchend", this.onEnd);
   }
 
   bindEvents() {
