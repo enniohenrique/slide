@@ -175,7 +175,7 @@ export class Slide {
 }
 
 // Classe dos botões de navegação (anterior e próximo) do slide
-export class SlideNav extends Slide {
+export default class SlideNav extends Slide {
   constructor(slide, wrapper) {
     super(slide, wrapper);
     this.bindControlEvents();
